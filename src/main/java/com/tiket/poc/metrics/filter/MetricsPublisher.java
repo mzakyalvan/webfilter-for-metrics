@@ -18,7 +18,13 @@ import reactor.core.publisher.Mono;
 public interface MetricsPublisher {
   MetricsPublisher LOGGING_ONLY = new LoggingMetricsPublisher();
 
-  Mono<Void> publish(SampledMetrics sample);
+  /**
+   * Publish the metrics.
+   *
+   * @param metrics
+   * @return
+   */
+  Mono<Void> publish(SampledMetrics metrics);
 
   /**
    * Contract for metrics.
@@ -41,6 +47,9 @@ public interface MetricsPublisher {
       return Mono.fromCallable(() -> new Recorder(endpointPath, httpMethod));
     }
 
+    /**
+     * Metrics recorder.
+     */
     public static class Recorder {
       private final String endpointPath;
       private final HttpMethod httpMethod;

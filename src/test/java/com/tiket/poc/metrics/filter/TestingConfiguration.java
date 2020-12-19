@@ -12,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -21,12 +20,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.protocol.types.Field.Str;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.NestedRuntimeException;
@@ -58,8 +53,15 @@ public class TestingConfiguration {
     HandlerFunction<ServerResponse> handler = request -> subscriberContext()
         .flatMap(context -> defer(() -> processor.process(request.pathVariable("id"), request.queryParam("order-secret").get()))
             .doOnNext(order -> {
-              Optional<DomainEnricher> metricsOptional = context.getOrEmpty(DomainEnricher.class);
-              metricsOptional.ifPresent(metrics -> metrics.put("issuanceLag", Duration.between(order.getCreatedTime(), order.getIssuedTime())));
+              Optional<BusinessAttributes> metricsOptional = context.getOrEmpty(BusinessAttributes.class);
+              metricsOptional.ifPresent(metrics -> {
+                metrics.put("issuanceLag", Duration.between(order.getCreatedTime(), order.getIssuedTime()));
+              });
+              metricsOptional.ifPresent(metrics -> metrics.put("businessCode", "SUCCESS"));
+            })
+            .doOnError(throwable -> {
+              Optional<BusinessAttributes> metricsOptional = context.getOrEmpty(BusinessAttributes.class);
+              metricsOptional.ifPresent(metrics -> metrics.put("businessCode", "ERROR"));
             })
             .flatMap(order -> ok().bodyValue(succeed(order)))
         );

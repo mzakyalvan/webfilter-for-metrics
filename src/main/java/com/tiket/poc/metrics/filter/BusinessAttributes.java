@@ -12,30 +12,34 @@ import lombok.Value;
  */
 @Value
 @Getter
-public class DomainEnricher {
+public class BusinessAttributes {
   ConcurrentMap<String, Object> domainMetas;
 
-  DomainEnricher(ConcurrentMap<String, Object> domainMetas) {
+  BusinessAttributes(ConcurrentMap<String, Object> domainMetas) {
     this.domainMetas = domainMetas;
   }
 
-  public static DomainEnricher empty() {
-    return new DomainEnricher(new ConcurrentHashMap<>());
+  /**
+   * Create new {@link BusinessAttributes} with empty attributes.
+   *
+   * @return
+   */
+  public static BusinessAttributes empty() {
+    return new BusinessAttributes(new ConcurrentHashMap<>());
   }
 
-  public Object computeIfAbsent(String key,
-      Function<? super String, ?> mappingFunction) {
-    return domainMetas.computeIfAbsent(key, mappingFunction);
+  public Object computeIfAbsent(String key, Function<? super String, ?> mapper) {
+    return domainMetas.computeIfAbsent(key, mapper);
   }
 
   public Object computeIfPresent(String key,
-      BiFunction<? super String, ? super Object, ?> remappingFunction) {
-    return domainMetas.computeIfPresent(key, remappingFunction);
+      BiFunction<? super String, ? super Object, ?> remapping) {
+    return domainMetas.computeIfPresent(key, remapping);
   }
 
   public Object compute(String key,
-      BiFunction<? super String, ? super Object, ?> remappingFunction) {
-    return domainMetas.compute(key, remappingFunction);
+      BiFunction<? super String, ? super Object, ?> remapping) {
+    return domainMetas.compute(key, remapping);
   }
 
   public boolean isEmpty() {
